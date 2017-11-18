@@ -1,0 +1,15 @@
+{% extends "base.html.j2" %}
+{% block content %}
+  <h1>Hello, {{ user.nickname }}</h1>
+  {% if posts %}
+  <ul class="posts">
+    {% for post in posts %}
+    <li>
+      <a href="#{{ post.author.id }}" class="user">{{ post.author.nickname }}</a>
+      <p>{{ post.body }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+{% endblock %}
+<p>THIS TEXT IS DROPPED!</p>
