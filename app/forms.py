@@ -5,5 +5,6 @@ from wtforms.validators import DataRequired
 # Create a Login Form class with 'fields' represented from wtforms module
 class LoginForm(Form):
     # Form Validation on this field is that this is a Required Field
-    openid = StringField('openid', validators=[DataRequired()])
+    email = StringField('email', validators=[DataRequired()])
+    password = StringField('password', validators=[DataRequired()])
     remember_me = BooleanField('remember_me', default=False)
