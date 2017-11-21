@@ -30,7 +30,6 @@ def jsonify_listing(listing):
         }
     }
 
-# TODO: Support Query Parameters
 # Return a list of all Listings in the DB
 def get_listings():
     listings = Listing.query
@@ -54,11 +53,9 @@ def get_listings():
     json_listings = jsonify([jsonify_listing(x) for x in listings])
     return json_listings
 
-# TODO: Consider inlining these
 def get_datetime_from_str(date_str):
     return datetime.strptime(date_str,date_format)
 
-# TODO: Consider inlining these
 def get_str_from_datetime(date_time):
     return date_time.strftime(date_format)
 
@@ -69,7 +66,6 @@ def create_listing_from_json(content):
     l = Listing(user=user,title=title,description=description,expiration=expiration,locationx=x,locationy=y)
     return l
 
-# TODO: Parse Expiration Date
 def create_listing():
     try:
         content = request.get_json(force=True)
@@ -110,7 +106,6 @@ def get_listing(id):
 
     return jsonify(jsonify_listing(listing))
 
-# TODO: Support Date Time
 # Simply Update Each Parameter
 def update_listing(id):
     try:
