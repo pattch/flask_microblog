@@ -33,7 +33,24 @@ def jsonify_listing(listing):
 # TODO: Support Query Parameters
 # Return a list of all Listings in the DB
 def get_listings():
-    listings = Listing.query.all()
+    listings = Listing.query
+
+    active = request.args.get('active')
+    if active and active == '1':
+        listings = listings.filter(Listing.expiration > datetime.utcnow())
+
+    page,length = request.args.get('page'),request.args.get('length')
+    if page and length:
+        try:
+            page,length = int(page),int(length)
+            start,end = ((page - 1) * length) + 1, ((page) * length) + 1
+            print(start,end)
+            listings = listings.filter(Listing.id.in_(range(start,end)))
+        except BaseException as error:
+            print(error)
+            abort(400)
+
+    listings = listings.all()
     json_listings = jsonify([jsonify_listing(x) for x in listings])
     return json_listings
 
