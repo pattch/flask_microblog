@@ -1,7 +1,7 @@
 # Config File General Settings for the app
 import os
 
-WTF_CSRF_ENABLED = True
+WTF_CSRF_ENABLED = False
 SECRET_KEY = 'l337-53cr37'
 
 OPENID_PROVIDERS = [

@@ -1,0 +1,20 @@
+# Change anything you need to in this file, including the base image.
+FROM ubuntu:latest
+
+ADD . /app
+WORKDIR /app
+
+RUN ["apt-get","update","-y"]
+RUN ["apt-get","install","-y","python-pip","python-dev","build-essential"]
+
+# Add Python Flask Dependencies
+RUN ["pip","install","-r","dependencies.txt"]
+
+# CMD ["python", "-m", "SimpleHTTPServer", "9090"]
+
+# Create the empty SQLite DB
+CMD ["python","db_create.py"]
+# Create Necessary Migrations
+CMD ["python","db_migrate.py"]
+# Run Flask Server
+CMD ["python","run.py"]
