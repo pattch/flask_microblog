@@ -3,13 +3,15 @@ from app import app, db
 from datetime import datetime
 from .models import Listing
 
-
+# APIs for Collections of Listings
 @app.route('/api/listings/', methods=['GET','POST','DELETE'])
 def listings():
     if request.method == 'GET':
         return get_listings()
-    else:
-        return 'STRANGENESS'
+    elif request.method == 'POST':
+        return create_listing()
+    elif request.method == 'DELETE':
+        return delete_all()
     abort(404)
 
 # Convert a listing to a format that can be jsonified
@@ -25,11 +27,89 @@ def jsonify_listing(listing):
         }
     }
 
+# TODO: Support Query Parameters
 # Return a list of all Listings in the DB
 def get_listings():
     listings = Listing.query.all()
     json_listings = jsonify([jsonify_listing(x) for x in listings])
     return json_listings
+
+def create_listing_from_json(content):
+    user,title,description,expiration = content['user'],content['title'],content['description'],content['expiration']
+    x,y = content['location']['x'],content['location']['y']
+    l = Listing(user=user,title=title,description=description,expiration=datetime.utcnow(),locationx=x,locationy=y)
+    return l
+
+# TODO: Parse Expiration Date
+def create_listing():
+    try:
+        content = request.get_json(force=True)
+        l = create_listing_from_json(content)
+        db.session.add(l)
+        db.session.commit()
+        return jsonify({'id':l.id})
+    except:
+        abort(400)
+
+def delete_all():
+    deleted_count = Listing.query.delete()
+    if deleted_count:
+        db.session.commit()
+    return ('',204)
+
+# APIs for Individual Listings
+@app.route('/api/listings/<id>', methods=['GET','PUT','DELETE'])
+def listing(id):
+    try:
+        id = int(id)
+    except:
+        abort(400)
+
+    if request.method == 'GET':
+        return get_listing(id)
+    elif request.method == 'PUT':
+        return update_listing(id)
+    elif request.method == 'DELETE':
+        return delete_listing(id)
+    abort(404)
+
+def get_listing(id):
+    listing = Listing.query.get(id)
+    if not listing:
+        abort(404)
+
+    return jsonify(jsonify_listing(listing))
+
+# TODO: Support Date Time
+# Simply Update Each Parameter
+def update_listing(id):
+    try:
+        content = request.get_json(force=True)
+        updated_fields = {
+            'id': id,
+            'user': content['user'],
+            'title': content['title'],
+            'description': content['description'],
+            'expiration': datetime.utcnow(),
+            'locationx': content['location']['x'],
+            'locationy': content['location']['y']
+        }
+        Listing.query.with_for_update().filter_by(id=id).update(updated_fields)
+        db.session.commit()
+        return ('',204)
+    except BaseException as error:
+        print(error)
+        abort(400)
+
+def delete_listing(id):
+    listing = Listing.query.get(id)
+    if listing is None:
+        return ('',204)
+    db.session.delete(listing)
+    db.session.commit()
+    return ('',204)
+
+
 
 # @lm.user_loader
 # def user_loader(user_id):
