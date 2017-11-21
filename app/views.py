@@ -6,7 +6,7 @@ from .models import Listing
 date_format = "%Y-%m-%dT%H:%M:%S"
 
 # APIs for Collections of Listings
-@app.route('/api/listings/', methods=['GET','POST','DELETE'])
+@app.route('/api/listings', methods=['GET','POST','DELETE'])
 def listings():
     if request.method == 'GET':
         return get_listings()
@@ -121,7 +121,7 @@ def update_listing(id):
         }
         Listing.query.with_for_update().filter_by(id=id).update(updated_fields)
         db.session.commit()
-        return ('',204)
+        return jsonify({'id':id})
     except BaseException as error:
         print(error)
         abort(400)

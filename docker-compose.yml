@@ -3,6 +3,6 @@ services:
   web:
     build: .
     ports:
-      - "5000:5000"
+      - "9090:9090"
     stdin_open: true
     tty: true
