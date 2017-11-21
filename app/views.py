@@ -3,6 +3,8 @@ from app import app, db
 from datetime import datetime
 from .models import Listing
 
+date_format = "%Y-%m-%dT%H:%M:%S"
+
 # APIs for Collections of Listings
 @app.route('/api/listings/', methods=['GET','POST','DELETE'])
 def listings():
@@ -21,6 +23,7 @@ def jsonify_listing(listing):
         'user': listing.user,
         'title': listing.title,
         'description': listing.description,
+        'expiration': get_str_from_datetime(listing.expiration),
         'location': {
             'x': listing.locationx,
             'y': listing.locationy
@@ -34,10 +37,19 @@ def get_listings():
     json_listings = jsonify([jsonify_listing(x) for x in listings])
     return json_listings
 
+# TODO: Consider inlining these
+def get_datetime_from_str(date_str):
+    return datetime.strptime(date_str,date_format)
+
+# TODO: Consider inlining these
+def get_str_from_datetime(date_time):
+    return date_time.strftime(date_format)
+
 def create_listing_from_json(content):
-    user,title,description,expiration = content['user'],content['title'],content['description'],content['expiration']
+    expiration = get_datetime_from_str(content['expiration'])
+    user,title,description = content['user'],content['title'],content['description']
     x,y = content['location']['x'],content['location']['y']
-    l = Listing(user=user,title=title,description=description,expiration=datetime.utcnow(),locationx=x,locationy=y)
+    l = Listing(user=user,title=title,description=description,expiration=expiration,locationx=x,locationy=y)
     return l
 
 # TODO: Parse Expiration Date
@@ -48,7 +60,8 @@ def create_listing():
         db.session.add(l)
         db.session.commit()
         return jsonify({'id':l.id})
-    except:
+    except BaseException as error:
+        print(error)
         abort(400)
 
 def delete_all():
@@ -90,7 +103,7 @@ def update_listing(id):
             'user': content['user'],
             'title': content['title'],
             'description': content['description'],
-            'expiration': datetime.utcnow(),
+            'expiration': get_datetime_from_str(content['expiration']),
             'locationx': content['location']['x'],
             'locationy': content['location']['y']
         }
