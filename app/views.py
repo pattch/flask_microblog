@@ -104,7 +104,7 @@ def listing(id):
     try:
         id = int(id)
     except:
-        return('',400)
+        return('',404)
 
     if request.method == 'GET':
         return get_listing(id)
