@@ -2,6 +2,7 @@ from flask import jsonify, request, abort
 from app import app, db
 from datetime import datetime
 from .models import Listing
+from math import sqrt
 
 date_format = "%Y-%m-%dT%H:%M:%S"
 
@@ -14,7 +15,7 @@ def listings():
         return create_listing()
     elif request.method == 'DELETE':
         return delete_all()
-    abort(404)
+    return('',404)
 
 # Convert a listing to a format that can be jsonified
 def jsonify_listing(listing):
@@ -29,6 +30,11 @@ def jsonify_listing(listing):
             'y': listing.locationy
         }
     }
+
+# Equivalent to euclidean distance of a and b <= radius
+def within_radius(a,b,radius):
+    print(a,b,radius)
+    return sqrt(((a[0]-b[0])**2) + ((a[1]-b[1])**2)) <= radius
 
 # Return a list of all Listings in the DB
 def get_listings():
@@ -47,7 +53,13 @@ def get_listings():
             listings = listings.filter(Listing.id.in_(range(start,end)))
         except BaseException as error:
             print(error)
-            abort(400)
+            return('',400)
+
+    # Listing.coords = classmethod(lambda s: (s.locationx, s.locationy))
+    # x,y,radius = request.args.get('x'),request.args.get('y'),request.args.get('radius')
+    # if x and y and radius:
+    #     x,y,radius = float(x),float(y),float(radius)
+    #     listings = listings.filter(within_radius((Listing.coords()),(x,y),radius))
 
     listings = listings.all()
     json_listings = jsonify([jsonify_listing(x) for x in listings])
@@ -62,6 +74,8 @@ def get_str_from_datetime(date_time):
 def create_listing_from_json(content):
     expiration = get_datetime_from_str(content['expiration'])
     user,title,description = content['user'],content['title'],content['description']
+    if len(title) > 140 or len(description) > 1024:
+        return False
     x,y = content['location']['x'],content['location']['y']
     l = Listing(user=user,title=title,description=description,expiration=expiration,locationx=x,locationy=y)
     return l
@@ -70,12 +84,13 @@ def create_listing():
     try:
         content = request.get_json(force=True)
         l = create_listing_from_json(content)
+        if not l:
+            return('',400)
         db.session.add(l)
         db.session.commit()
         return jsonify({'id':l.id})
     except BaseException as error:
-        print(error)
-        abort(400)
+        return('',400)
 
 def delete_all():
     deleted_count = Listing.query.delete()
@@ -89,7 +104,7 @@ def listing(id):
     try:
         id = int(id)
     except:
-        abort(400)
+        return('',400)
 
     if request.method == 'GET':
         return get_listing(id)
@@ -97,12 +112,12 @@ def listing(id):
         return update_listing(id)
     elif request.method == 'DELETE':
         return delete_listing(id)
-    abort(404)
+    return('',404)
 
 def get_listing(id):
     listing = Listing.query.get(id)
     if not listing:
-        abort(404)
+        return('',404)
 
     return jsonify(jsonify_listing(listing))
 
@@ -110,6 +125,8 @@ def get_listing(id):
 def update_listing(id):
     try:
         content = request.get_json(force=True)
+        if len(content['title']) > 140 or len(content['description']) > 1024:
+            return('',400)
         updated_fields = {
             'id': id,
             'user': content['user'],
@@ -124,7 +141,7 @@ def update_listing(id):
         return jsonify({'id':id})
     except BaseException as error:
         print(error)
-        abort(400)
+        return('',400)
 
 def delete_listing(id):
     listing = Listing.query.get(id)

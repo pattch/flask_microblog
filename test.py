@@ -40,5 +40,21 @@ class SpaceBnBTestCase(unittest.TestCase):
         assert lj.locationy == self.locationy
         self.assert_datetime_equiv(lj.expiration,self.expiration)
 
+    def test_within_radius(self):
+        # Should be within
+        x,y,radius = 5.0,3.0,0.0
+        a,b = (self.locationx,self.locationy), (x,y)
+        assert views.within_radius(a,b,radius)
+
+        # Should be too far
+        x,y,radius = 6.0,3.0,0.0
+        a,b = (self.locationx,self.locationy), (x,y)
+        assert not views.within_radius(a,b,radius)
+
+        # Should be within
+        x,y,radius = 6.0,3.0,5.0
+        a,b = (self.locationx,self.locationy), (x,y)
+        assert views.within_radius(a,b,radius)
+
 if __name__ == '__main__':
     unittest.main()
